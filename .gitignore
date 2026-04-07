@@ -1,0 +1,19 @@
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Feast generated files
+*.db
+feature_repo/data/*.parquet
+feature_repo/data/registry.db
+feature_repo/data/online_store.db
+
+# OS
+.DS_Store
