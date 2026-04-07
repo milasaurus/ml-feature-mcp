@@ -21,17 +21,101 @@ uv run python mcp_client.py
 uv run mcp dev server.py
 ```
 
-## What's in the Feature Store
-
-**Listener stats** (users 1001-1010) — aggregated listening behavior:
-- `total_plays_7d`, `unique_tracks_7d`, `unique_artists_7d`
-- `avg_listen_minutes_daily`, `skip_rate`, `top_genre`, `avg_track_popularity`
-
-**Track features** (20 tracks, IDs t001-t020) — Spotify-style audio features:
-- `track_name`, `artist_name`, `genre`, `popularity`
-- `danceability`, `energy`, `valence`, `tempo`, `acousticness`, `instrumentalness`, `duration_ms`
+## Data Model
 
 Audio feature schema inspired by the [Spotify Tracks Dataset](https://www.kaggle.com/datasets/maharshipandya/-spotify-tracks-dataset).
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                        Feature Store                            │
+│                                                                 │
+│  ┌─────────────┐       ┌──────────────────┐                     │
+│  │   Entities   │       │  Feature Views   │                     │
+│  │             │       │                  │                     │
+│  │  listener ──┼──────▶│ listener_stats   │                     │
+│  │  (user_id)  │       │                  │                     │
+│  │             │       │                  │                     │
+│  │  track ─────┼──────▶│ track_features   │                     │
+│  │  (track_id) │       │                  │                     │
+│  └─────────────┘       └──────────────────┘                     │
+│                                                                 │
+│  ┌──────────────────────────────────────┐                       │
+│  │         Feature Services             │                       │
+│  │                                      │                       │
+│  │  listener_profile_v1                 │                       │
+│  │    └── listener_stats                │                       │
+│  │                                      │                       │
+│  │  recommendation_features_v1          │                       │
+│  │    ├── listener_stats                │                       │
+│  │    └── track_features                │                       │
+│  └──────────────────────────────────────┘                       │
+│                                                                 │
+│  ┌──────────────────────────────────────┐                       │
+│  │         Data Sources                 │                       │
+│  │                                      │                       │
+│  │  listener_stats_source (Parquet)     │                       │
+│  │    └── data/listener_stats.parquet   │                       │
+│  │                                      │                       │
+│  │  track_features_source (Parquet)     │                       │
+│  │    └── data/track_features.parquet   │                       │
+│  └──────────────────────────────────────┘                       │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Entities
+
+| Entity | Join Key | ID Format | Example |
+|---|---|---|---|
+| listener | `user_id` | integer | `1001` |
+| track | `track_id` | string | `"t001"` |
+
+### listener_stats
+
+Aggregated listening behavior per user, updated every 6 hours. TTL: 7 days.
+
+| Feature | Type | Range | Description |
+|---|---|---|---|
+| `total_plays_7d` | int | 20-500 | Track plays in the last 7 days |
+| `unique_tracks_7d` | int | 10-200 | Distinct tracks played |
+| `unique_artists_7d` | int | 5-80 | Distinct artists played |
+| `avg_listen_minutes_daily` | float | 15-180 | Average daily listening time (minutes) |
+| `skip_rate` | float | 0.0-1.0 | Fraction of tracks skipped within 30 seconds |
+| `top_genre` | string | — | Most-played genre in the last 7 days |
+| `avg_track_popularity` | float | 0-100 | Average popularity score of played tracks |
+
+### track_features
+
+Per-track audio features and metadata. TTL: 30 days.
+
+| Feature | Type | Range | Description |
+|---|---|---|---|
+| `track_name` | string | — | Track title |
+| `artist_name` | string | — | Primary artist |
+| `genre` | string | — | Genre classification |
+| `popularity` | int | 0-100 | Popularity score based on play count and recency |
+| `danceability` | float | 0.0-1.0 | Suitability for dancing |
+| `energy` | float | 0.0-1.0 | Perceptual intensity and activity |
+| `valence` | float | 0.0-1.0 | Musical positiveness (high = happy, low = sad) |
+| `tempo` | float | BPM | Estimated tempo |
+| `acousticness` | float | 0.0-1.0 | Confidence the track is acoustic |
+| `instrumentalness` | float | 0.0-1.0 | Likelihood of no vocals |
+| `duration_ms` | int | ms | Track length in milliseconds |
+
+### Sample entities
+
+**10 listeners**: user IDs `1001`–`1010`
+
+**20 tracks across 7 artists**:
+
+| Track IDs | Artist | Genre |
+|---|---|---|
+| t001, t010, t015 | Luna Park | electronic |
+| t002, t008, t016 | Rosa Vega | pop, latin |
+| t003, t009, t017 | Ghost Protocol | hip-hop |
+| t004, t011, t018 | Ama Diallo | r&b |
+| t005, t012, t019 | Neon Bridges | indie |
+| t006, t014, t020 | The Midnight Waves | rock |
+| t007, t013 | Kira Sato | jazz |
 
 ## Project Structure
 
@@ -70,7 +154,7 @@ The MCP layer is a management and exploration interface. It does not replace the
 
 ## How It Differs from Production
 
-| Aspect | This Project (Feast MCP) | Production (e.g. Jukebox) |
+| Aspect | This Project (Feast MCP) | Production |
 |---|---|---|
 | **Feature references** | Simple `feature_view:feature_name` strings (e.g. `listener_stats:skip_rate`) | Hierarchical registered paths: `/<entity>/<project>/<feature>` (e.g. `/artist/jukebox-apm-sample/popularity_normalized`) |
 | **Feature config** | Inline string lists passed to `get_online_features()` | Structured `FeatureSpec` with `FeatureColumn` objects in dedicated config modules, with column aliasing for downstream pipeline steps |
