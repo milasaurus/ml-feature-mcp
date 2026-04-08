@@ -79,9 +79,16 @@ class FeastMCPClient:
         # MCP handshake — negotiate capabilities with the server
         await self.session.initialize()
 
-        # Step 2: Discover tools — ask the server what tools it offers.
-        # Convert from MCP tool format to Anthropic's expected format.
-        # MCP uses "inputSchema", Anthropic uses "input_schema".
+        await self._discover_tools()
+
+    # ── Step 2: MCP operations (discover + call tools) ─────────────────
+
+    async def _discover_tools(self):
+        """Ask the server what tools it offers and convert to Anthropic format.
+
+        MCP tools use "inputSchema" while Anthropic expects "input_schema".
+        This fetches the tool list and stores the converted definitions.
+        """
         response = await self.session.list_tools()
         self.available_tools = [
             {
@@ -91,6 +98,20 @@ class FeastMCPClient:
             }
             for tool in response.tools
         ]
+
+    async def _call_tool(self, tool_use_id: str, name: str, args: dict) -> dict:
+        """Route a single tool call through MCP and return a tool_result dict.
+
+        This is the key MCP integration point: instead of executing tools
+        locally, we call session.call_tool() which sends the request to
+        the MCP server over stdio via JSON-RPC.
+        """
+        result = await self.session.call_tool(name, args)
+        return {
+            "type": "tool_result",
+            "tool_use_id": tool_use_id,
+            "content": result.content[0].text if result.content else "",
+        }
 
     # ── Step 3: Chat loop — Claude + MCP tool routing ────────────────────
 
@@ -103,6 +124,9 @@ class FeastMCPClient:
           (session.call_tool) instead of executing locally
         - Results flow back to Claude for the next reasoning step
         """
+        if not self.session:
+            raise RuntimeError("Not connected — call connect() first")
+
         self.messages.append({"role": "user", "content": user_message})
 
         # Prompt caching: mark the last tool and the tool prompt as
@@ -126,6 +150,12 @@ class FeastMCPClient:
             },
         ]
 
+        # Claude may need multiple round trips to answer a question.
+        # For example: "Get features for user 1001" requires Claude to
+        # first call list_feature_views to learn the schema, then call
+        # get_online_features with the right parameters. Each iteration
+        # is one Claude API call → tool execution → feed results back
+        # cycle. MAX_ITERATIONS caps this to prevent runaway loops.
         for _ in range(MAX_ITERATIONS):
             # Streaming: tokens arrive as they're generated. We consume
             # the full stream and get the final message. Extended thinking
@@ -158,18 +188,11 @@ class FeastMCPClient:
                 return self._extract_text(response)
 
             # Claude wants to call tools — route each one through MCP.
-            # This is the key MCP integration point: instead of executing
-            # tools locally, we call session.call_tool() which sends the
-            # request to the MCP server over stdio.
             tool_results = []
             for block in response.content:
                 if block.type == "tool_use":
-                    result = await self.session.call_tool(block.name, block.input)
-                    tool_results.append({
-                        "type": "tool_result",
-                        "tool_use_id": block.id,
-                        "content": result.content[0].text if result.content else "",
-                    })
+                    result = await self._call_tool(block.id, block.name, block.input)
+                    tool_results.append(result)
 
             # Append tool results as a "user" message (required by the API)
             # and loop back to let Claude process the results
@@ -185,5 +208,17 @@ class FeastMCPClient:
         return ""
 
     async def close(self):
-        """Clean up the MCP connection."""
+        """Clean up the MCP connection.
+
+        Tears down the ClientSession and stdio transport, which kills
+        the server subprocess. Safe to call multiple times.
+        """
+        self.session = None
+        self.available_tools = []
         await self.exit_stack.aclose()
+
+    async def __aenter__(self):
+        return self
+
+    async def __aexit__(self, *exc):
+        await self.close()

@@ -5,15 +5,14 @@ import asyncio
 from mcp_client import FeastMCPClient
 
 async def main():
-    client = FeastMCPClient()
-    await client.connect("mcp_servers/feast_server.py")
+    async with FeastMCPClient() as client:
+        await client.connect("mcp_servers/feast_server.py")
 
-    print(f"Connected. Discovered {len(client.available_tools)} tools:")
-    for tool in client.available_tools:
-        print(f"  - {tool['name']}: {tool['description']}")
-    print("\nReady! Ask me about the feature store. Type 'quit' to exit.\n")
+        print(f"Connected. Discovered {len(client.available_tools)} tools:")
+        for tool in client.available_tools:
+            print(f"  - {tool['name']}: {tool['description']}")
+        print("\nReady! Ask me about the feature store. Type 'quit' to exit.\n")
 
-    try:
         while True:
             try:
                 user_input = input("You: ")
@@ -25,8 +24,6 @@ async def main():
 
             response = await client.chat(user_input)
             print(f"\nClaude: {response}\n")
-    finally:
-        await client.close()
 
 
 if __name__ == "__main__":
