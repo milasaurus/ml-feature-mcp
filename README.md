@@ -2,7 +2,7 @@
 
 A conversational management layer for ML feature stores. Uses MCP (Model Context Protocol) to let you discover, inspect, and retrieve features through natural language instead of writing boilerplate SDK scripts.
 
-Built on Feast (open-source feature store) with sample music streaming data.
+Built on Feast (open-source feature store). The MCP client and server are generic — they work with any Feast feature store. The project includes a sample music streaming data model for illustrative purposes; see [GUIDE.md](GUIDE.md#using-your-own-data) for how to plug in your own data.
 
 ## Quick Start
 
@@ -23,7 +23,7 @@ uv run mcp dev mcp_servers/feast_server.py
 
 ## Data Model
 
-Audio feature schema inspired by the [Spotify Tracks Dataset](https://www.kaggle.com/datasets/maharshipandya/-spotify-tracks-dataset).
+The sample data below is for illustration only — it demonstrates the kinds of features a music streaming platform might store. Audio feature schema inspired by the [Spotify Tracks Dataset](https://www.kaggle.com/datasets/maharshipandya/-spotify-tracks-dataset).
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
@@ -73,25 +73,25 @@ Audio feature schema inspired by the [Spotify Tracks Dataset](https://www.kaggle
 
 Aggregated listening behavior per user, updated every 6 hours. TTL: 7 days.
 
-| Feature | Type | Range | Description |
+| Feature | Type | Values | Description |
 |---|---|---|---|
 | `total_plays_7d` | int | 20-500 | Track plays in the last 7 days |
 | `unique_tracks_7d` | int | 10-200 | Distinct tracks played |
 | `unique_artists_7d` | int | 5-80 | Distinct artists played |
 | `avg_listen_minutes_daily` | float | 15-180 | Average daily listening time (minutes) |
 | `skip_rate` | float | 0.0-1.0 | Fraction of tracks skipped within 30 seconds |
-| `top_genre` | string | — | Most-played genre in the last 7 days |
+| `top_genre` | string | e.g. "hip-hop" | Most-played genre in the last 7 days |
 | `avg_track_popularity` | float | 0-100 | Average popularity score of played tracks |
 
 ### track_features
 
 Per-track audio features and metadata. TTL: 30 days.
 
-| Feature | Type | Range | Description |
+| Feature | Type | Values | Description |
 |---|---|---|---|
-| `track_name` | string | — | Track title |
-| `artist_name` | string | — | Primary artist |
-| `genre` | string | — | Genre classification |
+| `track_name` | string | e.g. "Midnight Drive" | Track title |
+| `artist_name` | string | e.g. "Luna Park" | Primary artist |
+| `genre` | string | e.g. "electronic" | Genre classification |
 | `popularity` | int | 0-100 | Popularity score based on play count and recency |
 | `danceability` | float | 0.0-1.0 | Suitability for dancing |
 | `energy` | float | 0.0-1.0 | Perceptual intensity and activity |
