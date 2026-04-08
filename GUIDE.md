@@ -123,7 +123,7 @@ You: Which feature service should I use if I only need listener behavior data?
 If tools aren't behaving as expected, test the server in isolation:
 
 ```bash
-uv run mcp dev mcp_server.py
+uv run mcp dev mcp_servers/feast_server.py
 ```
 
 This opens a browser UI at `http://localhost:5173` where you can:

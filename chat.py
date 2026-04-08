@@ -6,7 +6,7 @@ from mcp_client import FeastMCPClient
 
 async def main():
     client = FeastMCPClient()
-    await client.connect("mcp_server.py")
+    await client.connect("mcp_servers/feast_server.py")
 
     print(f"Connected. Discovered {len(client.available_tools)} tools:")
     for tool in client.available_tools:

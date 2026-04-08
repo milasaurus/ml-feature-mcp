@@ -9,8 +9,8 @@ The server wraps a local Feast FeatureStore and registers tools for:
 Runs over stdio transport. The MCP client spawns this as a subprocess.
 
 Usage:
-    uv run python mcp_server.py           # Run as MCP server (stdio)
-    uv run mcp dev mcp_server.py          # Debug in MCP Inspector (http://localhost:5173)
+    uv run python mcp_servers/feast_server.py           # Run as MCP server (stdio)
+    uv run mcp dev mcp_servers/feast_server.py          # Debug in MCP Inspector (http://localhost:5173)
 """
 
 # TODO: Step 2 — implement the following:

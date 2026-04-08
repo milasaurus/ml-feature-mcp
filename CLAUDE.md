@@ -4,7 +4,7 @@
 
 ```bash
 uv run python chat.py            # Run the interactive REPL (spawns server automatically)
-uv run mcp dev mcp_server.py     # Debug server in MCP Inspector (http://localhost:5173)
+uv run mcp dev mcp_servers/feast_server.py     # Debug server in MCP Inspector (http://localhost:5173)
 uv run python -m pytest tests/   # Run tests
 ```
 
