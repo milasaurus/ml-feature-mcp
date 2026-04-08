@@ -2,17 +2,18 @@
 MCP Client — connects to the Feast MCP server, discovers tools,
 and wires them into a Claude conversation loop with streaming and
 extended thinking.
+
+This module is pure MCP + Claude plumbing. It does not handle user
+interaction — see chat.py for the REPL interface.
 """
 
-import asyncio
-import json
 from contextlib import AsyncExitStack
 
 import anthropic
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 
-from system_prompt import SYSTEM_PROMPT
+from system_prompt import SYSTEM_PROMPT, TOOL_PROMPT
 
 MODEL = "claude-haiku-4-5-20251001"
 MAX_TOKENS = 16_000
@@ -56,10 +57,6 @@ class FeastMCPClient:
             for tool in response.tools
         ]
 
-        print(f"Connected to server. Discovered {len(self.available_tools)} tools:")
-        for tool in self.available_tools:
-            print(f"  - {tool['name']}: {tool['description']}")
-
     async def chat(self, user_message: str) -> str:
         """Send a message through Claude with MCP tools, using streaming and extended thinking."""
         self.messages.append({"role": "user", "content": user_message})
@@ -69,14 +66,6 @@ class FeastMCPClient:
         if tools:
             tools[-1]["cache_control"] = {"type": "ephemeral"}
 
-        # Tool prompt: help Claude use the tools effectively
-        tool_prompt = (
-            "When asked about the feature store, use the available tools to look up "
-            "real data rather than guessing. Call list_feature_views or list_entities "
-            "first if you need to discover what's available before fetching specific "
-            "feature values. When fetching features, use the exact feature view and "
-            "entity names returned by the list tools."
-        )
         system = [
             {
                 "type": "text",
@@ -84,7 +73,7 @@ class FeastMCPClient:
             },
             {
                 "type": "text",
-                "text": tool_prompt,
+                "text": TOOL_PROMPT,
                 "cache_control": {"type": "ephemeral"},
             },
         ]
@@ -137,30 +126,6 @@ class FeastMCPClient:
                 return block.text
         return ""
 
-    async def run(self):
-        """Interactive REPL loop."""
-        await self.connect("server.py")
-        print("\nReady! Ask me about the feature store. Type 'quit' to exit.\n")
-
-        while True:
-            try:
-                user_input = input("You: ")
-            except (EOFError, KeyboardInterrupt):
-                break
-
-            if user_input.strip().lower() in ("quit", "exit"):
-                break
-
-            response = await self.chat(user_input)
-            print(f"\nClaude: {response}\n")
-
+    async def close(self):
+        """Clean up the MCP connection."""
         await self.exit_stack.aclose()
-
-
-async def main():
-    client = FeastMCPClient()
-    await client.run()
-
-
-if __name__ == "__main__":
-    asyncio.run(main())
