@@ -57,7 +57,7 @@ cd ..
 
 ```bash
 # Start chatting
-uv run python mcp_client.py
+uv run python chat.py
 ```
 
 The client spawns the MCP server automatically. No separate server process needed.
@@ -123,7 +123,7 @@ You: Which feature service should I use if I only need listener behavior data?
 If tools aren't behaving as expected, test the server in isolation:
 
 ```bash
-uv run mcp dev server.py
+uv run mcp dev mcp_servers/feast_server.py
 ```
 
 This opens a browser UI at `http://localhost:5173` where you can:
@@ -181,16 +181,44 @@ Genre-based audio profiles shape realistic feature distributions (e.g., electron
 | t006, t014, t020 | The Midnight Waves | rock |
 | t007, t013 | Kira Sato | jazz |
 
-## Extending This Project
+## Using Your Own Data
 
-### Add your own features
+The sample music data is just a starting point. To use your own data, you need to create a `feature_definitions.py` that describes your feature store schema. This file is what tells Feast about your entities, features, and data sources.
 
-1. Edit `feature_repo/feature_definitions.py` to add new feature views
-2. Update `generate_data.py` to produce matching parquet data
-3. Run `feast apply` and `feast materialize-incremental`
-4. Add a new `@mcp.tool()` in `server.py` if the existing tools don't cover your query pattern
+### 1. Write your feature definitions
 
-### Connect to a real data source
+Create or edit `feature_repo/feature_definitions.py`. You need to define:
+
+- **Entities** — the primary keys for feature lookups (e.g. `user_id`, `product_id`)
+- **Data sources** — where your raw data lives (Parquet files, BigQuery tables, etc.)
+- **Feature views** — groups of features tied to an entity and source, with field names, types, and a TTL
+- **Feature services** (optional) — bundles of feature views that get served together
+
+See the included `feature_definitions.py` for a working example.
+
+### 2. Prepare your data
+
+Your data source needs at minimum:
+- A column matching each entity's join key
+- A timestamp column for point-in-time correctness
+- Columns for each feature in your schema
+
+If using local files, place Parquet files in `feature_repo/data/`.
+
+### 3. Apply and materialize
+
+```bash
+cd feature_repo
+uv run feast apply
+uv run feast materialize-incremental $(date -u +"%Y-%m-%dT%H:%M:%S")
+cd ..
+```
+
+### 4. Chat with your data
+
+Run `uv run python chat.py`. The MCP tools and system prompt are generic — they'll discover your feature views, entities, and schemas automatically. No code changes needed in the server or client.
+
+### Connect to a remote data source
 
 Replace `FileSource` with a BigQuery, Snowflake, or Redshift source in `feature_definitions.py`. Feast supports many [offline stores](https://docs.feast.dev/reference/offline-stores).
 

@@ -3,8 +3,8 @@
 ## Commands
 
 ```bash
-uv run python client.py          # Run the MCP client (spawns server automatically)
-uv run mcp dev server.py         # Debug server in MCP Inspector (http://localhost:5173)
+uv run python chat.py            # Run the interactive REPL (spawns server automatically)
+uv run mcp dev mcp_servers/feast_server.py     # Debug server in MCP Inspector (http://localhost:5173)
 uv run python -m pytest tests/   # Run tests
 ```
 
@@ -26,3 +26,10 @@ When calling the Anthropic API, always use:
 - snake_case for functions and variables, PascalCase for classes
 - Use named parameters for hardcoded values
 - API key from environment (`ANTHROPIC_API_KEY`), never hardcoded
+
+## After Making Changes
+
+After any code or structural change, check if these files need updating:
+- `README.md` — project structure, data model, quick start commands
+- `GUIDE.md` — example workflows, sample data tables, setup instructions
+- `CLAUDE.md` — commands, API defaults, code standards

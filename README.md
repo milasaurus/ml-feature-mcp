@@ -15,10 +15,10 @@ uv run python generate_data.py
 cd feature_repo && uv run feast apply && uv run feast materialize-incremental $(date -u +"%Y-%m-%dT%H:%M:%S") && cd ..
 
 # Run the MCP client (spawns the server automatically)
-uv run python mcp_client.py
+uv run python chat.py
 
 # Or debug the server in the MCP Inspector
-uv run mcp dev server.py
+uv run mcp dev mcp_servers/feast_server.py
 ```
 
 ## Data Model
@@ -123,7 +123,8 @@ Per-track audio features and metadata. TTL: 30 days.
 feast-mcp/
 ├── mcp_client.py              # MCP client — connects to server, routes tool calls to Claude
 ├── chat.py                    # REPL interface for interactive use
-├── server.py                  # MCP server — wraps Feast SDK as tools
+├── mcp_servers/
+│   └── feast_server.py        # MCP server — wraps Feast SDK as tools
 ├── system_prompt.py           # System prompt with feature store context
 ├── generate_data.py           # Sample data generator
 ├── feature_repo/              # Feast feature repository
