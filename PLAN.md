@@ -4,7 +4,7 @@
 
 Build a conversational management layer for a Feast feature store using MCP. The server exposes Feast SDK operations as tools (discovery, inspection, retrieval). The client connects to the server, discovers those tools, and routes Claude's tool calls through the protocol. Also a hands-on way to learn MCP concepts.
 
-## What You'll Learn
+## What You'll Build
 
 1. **MCP Server** — how to wrap an existing SDK (Feast) as MCP tools using `FastMCP` and `@mcp.tool()` decorators
 2. **MCP Client** — how to connect to a server, discover tools via `list_tools()`, and call them via `call_tool()`
