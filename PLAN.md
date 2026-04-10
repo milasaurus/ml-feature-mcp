@@ -348,3 +348,9 @@ from mcp.client.stdio import stdio_client
 - Authentication or authorization
 - Multi-server connections
 - Production error handling
+
+## Future Improvements
+
+- **MCP Prompts** — register `@mcp.prompt()` templates for common workflows (e.g. "debug user", "compare tracks", "feature audit"). Useful when the server is shared across multiple clients that don't have their own system prompts. Not needed while there's a single client with a good system prompt.
+- **MCP Resources** — expose static context like data dictionaries or business logic docs (e.g. "skip_rate below 0.15 means an engaged listener") as `@mcp.resource()`. Useful for domain knowledge that Claude can't derive from tool calls alone.
+- **Multi-server support** — connect to multiple MCP servers simultaneously (e.g. Feast + MLflow side by side)
