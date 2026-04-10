@@ -24,7 +24,7 @@
   - [x] `list_feature_services` — services and which views they bundle
   - [x] `get_online_features` — fetch latest feature values for entity rows
   - [x] `describe_feature_view` — detailed schema for a single view
-  - [ ] Test all tools in MCP Inspector (`uv run mcp dev mcp_servers/feast_server.py`)
+  - [x] Test all tools in MCP Inspector (`uv run mcp dev mcp_servers/feast_server.py`)
 
 ## Remaining
 
@@ -35,15 +35,15 @@
   - [x] "What entities are defined?"
   - [x] Multi-turn conversation works
 
-- [ ] **Step 4: Commit + PR**
-  - [ ] Final commit on `feat/mcp-server`
-  - [ ] Push and open PR to main
+- [x] **Step 4: Commit + PR**
+  - [x] Final commit on `feat/mcp-server`
+  - [x] Push and open PR to main
 
-- [ ] **Step 5: Tests**
-  - [ ] Unit tests for MCP server tools (mock Feast FeatureStore, verify JSON output)
-  - [ ] Unit tests for MCP client (mock ClientSession + Anthropic, verify tool routing)
-  - [ ] Integration test: client connects to real server, discovers tools
-  - [ ] E2E test: full chat flow with live Feast + Claude API
+- [x] **Step 5: Tests**
+  - [x] Unit tests for MCP server tools (mock Feast FeatureStore, verify JSON output)
+  - [x] Unit tests for MCP client (mock ClientSession + Anthropic, verify tool routing)
+  - [x] Integration test: client connects to real server, discovers tools
+  - [x] E2E test: full chat flow with live Feast + Claude API
 
 ## Future
 
