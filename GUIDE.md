@@ -43,21 +43,15 @@ cd feast-mcp
 # Install dependencies
 uv sync
 
-# Generate sample music streaming data
-uv run python generate_data.py
-
-# Register feature definitions and materialize to online store
-cd feature_repo
-uv run feast apply
-uv run feast materialize-incremental $(date -u +"%Y-%m-%dT%H:%M:%S")
-cd ..
+# Generate sample data and set up Feast
+make setup
 ```
 
 ### Run
 
 ```bash
 # Start chatting
-uv run python chat.py
+make chat
 ```
 
 The client spawns the MCP server automatically. No separate server process needed.
@@ -123,7 +117,7 @@ You: Which feature service should I use if I only need listener behavior data?
 ### Run tests
 
 ```bash
-uv run python -m pytest tests/
+make test
 ```
 
 ### Test server tools directly
@@ -172,7 +166,7 @@ All tools return JSON strings, so you can pipe them through `jq` or parse them i
 If tools aren't behaving as expected, test the server in isolation:
 
 ```bash
-uv run mcp dev mcp_servers/feast_server.py
+make dev
 ```
 
 This opens a browser UI at `http://localhost:5173` where you can:
@@ -257,23 +251,34 @@ If using local files, place Parquet files in `feature_repo/data/`.
 ### 3. Apply and materialize
 
 ```bash
-cd feature_repo
-uv run feast apply
-uv run feast materialize-incremental $(date -u +"%Y-%m-%dT%H:%M:%S")
-cd ..
+make setup
 ```
 
 ### 4. Chat with your data
 
-Run `uv run python chat.py`. The MCP tools and system prompt are generic — they'll discover your feature views, entities, and schemas automatically. No code changes needed in the server or client.
+Run `make chat`. The MCP tools and system prompt are generic — they'll discover your feature views, entities, and schemas automatically. No code changes needed in the server or client.
 
 ### Connect to a remote data source
 
 Replace `FileSource` with a BigQuery, Snowflake, or Redshift source in `feature_definitions.py`. Feast supports many [offline stores](https://docs.feast.dev/reference/offline-stores).
 
-### Add historical feature retrieval
+### Future tools to add
 
-Add a tool that wraps `store.get_historical_features()` for generating training datasets with point-in-time correct joins — the core Feast workflow for ML training pipelines.
+These Feast SDK operations would extend the MCP server's capabilities:
+
+**New tool types:**
+
+| Tool | Feast SDK Call | What it enables |
+|---|---|---|
+| `list_on_demand_feature_views` | `store.list_on_demand_feature_views()` | On-demand feature views (computed at request time) are invisible to the current `list_feature_views` tool — this surfaces them |
+| `get_historical_features` | `store.get_historical_features(entity_df, features)` | Pull point-in-time correct training data for a set of entities — the core Feast workflow for ML training pipelines |
+
+**Deeper inspection (`describe_*` counterparts for existing `list_*` tools):**
+
+| Tool | Feast SDK Call | What it enables |
+|---|---|---|
+| `describe_entity` | `store.get_entity(name)` | Inspect a single entity's join key, value type, description, and tags |
+| `describe_feature_service` | `store.get_feature_service(name)` | See which feature views a service bundles, its description, tags, and logging config |
 
 ### Add feature freshness monitoring
 
