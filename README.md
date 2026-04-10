@@ -4,6 +4,13 @@ A conversational management layer for ML feature stores. Uses MCP (Model Context
 
 Built on Feast (open-source feature store). The MCP client and server are generic — they work with any Feast feature store. The project includes a sample music streaming data model for illustrative purposes; see [GUIDE.md](GUIDE.md#using-your-own-data) for how to plug in your own data.
 
+## Prerequisites
+
+- Python 3.10+
+- [uv](https://docs.astral.sh/uv/) — Python package manager
+- [Node.js](https://nodejs.org/) — required for MCP Inspector (`uv run mcp dev`)
+- `ANTHROPIC_API_KEY` environment variable set
+
 ## Quick Start
 
 ```bash
@@ -17,7 +24,20 @@ cd feature_repo && uv run feast apply && uv run feast materialize-incremental $(
 # Run the MCP client (spawns the server automatically)
 uv run python chat.py
 
-# Or debug the server in the MCP Inspector
+# Or debug the server in the MCP Inspector (requires Node.js)
+uv run mcp dev mcp_servers/feast_server.py
+```
+
+## Testing
+
+```bash
+# Run unit and integration tests
+uv run python -m pytest tests/
+
+# Test MCP server tools directly (no Claude API needed)
+uv run python -c "from mcp_servers.feast_server import list_feature_views; print(list_feature_views())"
+
+# Debug server interactively in the MCP Inspector (requires Node.js)
 uv run mcp dev mcp_servers/feast_server.py
 ```
 

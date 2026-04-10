@@ -16,24 +16,24 @@
 
 ## In Progress
 
-- [ ] **Step 2: MCP Server** — implement the Feast tools in `mcp_servers/feast_server.py`
-  - [ ] Initialize FastMCP server + Feast FeatureStore
-  - [ ] `list_feature_views` — registered views with schemas, entities, TTL, tags
-  - [ ] `list_entities` — entity definitions and join keys
-  - [ ] `list_data_sources` — source names, types, paths, timestamp columns
-  - [ ] `list_feature_services` — services and which views they bundle
-  - [ ] `get_online_features` — fetch latest feature values for entity rows
-  - [ ] `describe_feature_view` — detailed schema for a single view
+- [x] **Step 2: MCP Server** — implement the Feast tools in `mcp_servers/feast_server.py`
+  - [x] Initialize FastMCP server + Feast FeatureStore
+  - [x] `list_feature_views` — registered views with schemas, entities, TTL, tags
+  - [x] `list_entities` — entity definitions and join keys
+  - [x] `list_data_sources` — source names, types, paths, timestamp columns
+  - [x] `list_feature_services` — services and which views they bundle
+  - [x] `get_online_features` — fetch latest feature values for entity rows
+  - [x] `describe_feature_view` — detailed schema for a single view
   - [ ] Test all tools in MCP Inspector (`uv run mcp dev mcp_servers/feast_server.py`)
 
 ## Remaining
 
-- [ ] **Step 3: End-to-end test** — run `chat.py` and verify full flow
-  - [ ] "What feature views are available?"
-  - [ ] "Get me the features for user 1001"
-  - [ ] "Compare tracks t001 and t006"
-  - [ ] "What entities are defined?"
-  - [ ] Multi-turn conversation works
+- [x] **Step 3: End-to-end test** — run `chat.py` and verify full flow
+  - [x] "What feature views are available?"
+  - [x] "Get me the features for user 1001"
+  - [x] "Compare tracks t001 and t006"
+  - [x] "What entities are defined?"
+  - [x] Multi-turn conversation works
 
 - [ ] **Step 4: Commit + PR**
   - [ ] Final commit on `feat/mcp-server`

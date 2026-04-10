@@ -118,6 +118,55 @@ You: I need user and track features for a skip prediction model — what's avail
 You: Which feature service should I use if I only need listener behavior data?
 ```
 
+## Testing
+
+### Run tests
+
+```bash
+uv run python -m pytest tests/
+```
+
+### Test server tools directly
+
+You can call any MCP server tool without the Claude API or MCP client:
+
+```bash
+# List feature views
+uv run python -c "from mcp_servers.feast_server import list_feature_views; print(list_feature_views())"
+
+# Get online features for a user
+uv run python -c "from mcp_servers.feast_server import get_online_features; print(get_online_features('listener_stats', {'user_id': [1001]}))"
+
+# Describe a feature view
+uv run python -c "from mcp_servers.feast_server import describe_feature_view; print(describe_feature_view('track_features'))"
+```
+
+## Running the Server Locally
+
+You can run the MCP server as a standalone process to see raw tool output without going through Claude. This is useful for verifying feature data, debugging tool behavior, or understanding what Claude sees when it calls a tool.
+
+```bash
+# Start the server
+uv run python mcp_servers/feast_server.py
+```
+
+Or import tools directly in a Python session:
+
+```python
+from mcp_servers.feast_server import list_feature_views, get_online_features, describe_feature_view
+
+# See all registered feature views
+print(list_feature_views())
+
+# Check what features a user has
+print(get_online_features("listener_stats", {"user_id": [1001]}))
+
+# Inspect a feature view's full schema
+print(describe_feature_view("track_features"))
+```
+
+All tools return JSON strings, so you can pipe them through `jq` or parse them in scripts.
+
 ## Debugging with MCP Inspector
 
 If tools aren't behaving as expected, test the server in isolation:
